@@ -4,20 +4,26 @@ import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+import org.hibernate.annotations.CreationTimestamp;
 import org.springframework.hateoas.RepresentationModel;
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.Null;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
 @Data
+@NoArgsConstructor()
 @AllArgsConstructor
-@NoArgsConstructor
+@JsonIgnoreProperties(ignoreUnknown = true)
+@Builder
 @Table(name = "task_db")
 @Entity
 public class TaskModel extends RepresentationModel<TaskModel> implements Serializable{
@@ -27,7 +33,10 @@ public class TaskModel extends RepresentationModel<TaskModel> implements Seriali
     private String title;
     private String description;
     private String status;
-    private LocalDateTime dueDate;
+    @Null
+    private LocalDateTime completed_at;
+    @CreationTimestamp
     private LocalDateTime createdAt;
-    private LocalDateTime upDateTime;
+    @CreationTimestamp
+    private LocalDateTime updatedAt;
 }
