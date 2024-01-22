@@ -12,11 +12,13 @@ public class DeleteTask {
     
     @Autowired
     private TaskRepository taskRepository;
-    public void deleteTaskById(UUID id) throws Exception{
+    public String deleteTaskById(UUID id) throws Exception{
         var task = this.taskRepository.findById(UUID.fromString(id.toString()));
-        if (!task.isEmpty()) {
-            throw new Exception();
+        if (task.isEmpty()) {
+            throw new Exception("Not found task.");
         }
-        this.deleteTaskById(id);
+        this.taskRepository.deleteById(id);
+        String message = "Sucesso";
+        return message;
     }
 }
