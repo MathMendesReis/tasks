@@ -20,7 +20,7 @@ This project is an API built using **Java, Java Spring Simple Storage Service.**
 1. Clone the repository:
 
 ```bash
-git clone https://github.com/MathMendesReis/Sistema_login_usuarios.git
+git clone https://github.com/MathMendesReis/tasks.git
 ```
 
 2. Install dependencies with Maven
