@@ -1,10 +1,12 @@
 package com.maths.tasks.modules.task.controller;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.hateoas.Link;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -24,11 +26,18 @@ import com.maths.tasks.modules.task.service.DeleteTask;
 import com.maths.tasks.modules.task.service.GetAllTasksUseCase;
 import com.maths.tasks.modules.task.service.UpdateTask;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 @RestController
 @RequestMapping("/task")
+@Tag(name = "task")
+
 public class TaskController {
     
     @Autowired
@@ -43,14 +52,21 @@ public class TaskController {
     @Autowired
     private UpdateTask updateTask;
 
+    private List<Link> getCommonLinks(UUID id) {
+    return Arrays.asList(
+        linkTo(methodOn(TaskController.class).findAllTask()).withRel("Tasks List"),
+        linkTo(methodOn(TaskController.class).updateTask(id, null)).withRel("Update task"),
+        linkTo(methodOn(TaskController.class).deletetask(id)).withRel("Delete task"),
+        linkTo(methodOn(TaskController.class).getOneTask(id)).withRel("Task details")
+    );
+}
+
 
     @PostMapping("/register")
     public ResponseEntity<Object> createTask(@RequestBody CreateTaskRequesDTO createTaskRequesDTO){
         try {
             var result = this.createTaskUseCase.createTask(createTaskRequesDTO);
-            result.add(linkTo(methodOn(TaskController.class).findAllTask()).withRel("Tasks List"));
-            result.add(linkTo(methodOn(TaskController.class).updateTask(result.getId(),null)).withRel("Update task"));
-            result.add(linkTo(methodOn(TaskController.class).deletetask(result.getId())).withRel("Delete task"));
+            result.add(getCommonLinks(result.getId()));
             return ResponseEntity.status(HttpStatus.CREATED).body(result);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
@@ -63,10 +79,7 @@ public class TaskController {
             if (!result.isEmpty()) {
                 for (TaskModel taskModel : result) {
                     UUID id = taskModel.getId();
-                    taskModel.add(linkTo(methodOn(TaskController.class).getOneTask(id)).withRel("Task details"));
-                    taskModel.add(linkTo(methodOn(TaskController.class).deletetask(id)).withRel("Delete task"));
-                    taskModel.add(linkTo(methodOn(TaskController.class).updateTask(taskModel.getId(),null)).withRel("Update task"));
-
+                    taskModel.add().add(getCommonLinks(id));
                 }
                 return ResponseEntity.status(HttpStatus.CREATED).body(result);
             }
@@ -74,19 +87,14 @@ public class TaskController {
     }
 
     @GetMapping("/findOne/{id}")
-	public ResponseEntity<Object> getOneTask(@PathVariable(value="id") UUID id){
-        try {
-            Optional<TaskModel> result= this.getAllTasksUseCase.findOneTasks(id);
-            if (!result.isEmpty()) {
-                result.get().add(linkTo(methodOn(TaskController.class).findAllTask()).withRel("Tasks List"));
-                result.get().add(linkTo(methodOn(TaskController.class).updateTask(id,null)).withRel("Update task"));
-                result.get().add(linkTo(methodOn(TaskController.class).deletetask(id)).withRel("Delete task"));
-            }
+    public ResponseEntity<Object> getOneTask(@PathVariable(value="id") UUID id) {
+        Optional<TaskModel> result = this.getAllTasksUseCase.findOneTasks(id);
+        if (!result.isEmpty()) {
+            result.get().add(getCommonLinks(id));
             return ResponseEntity.status(HttpStatus.CREATED).body(result);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         }
-	}
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body("");
+    }
 
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<Object> deletetask(@PathVariable(value="id") UUID id){
@@ -103,10 +111,11 @@ public class TaskController {
     public ResponseEntity<Object> updateTask(@PathVariable(value="id") UUID id, @RequestBody UpdatTaskDTO updatTaskDTO){
         try {
             var result = this.updateTask.updateTaskById(id,updatTaskDTO);
-            return ResponseEntity.status(HttpStatus.NO_CONTENT).body(result);
+            result.add().add(getCommonLinks(id));
+            return ResponseEntity.status(HttpStatus.CREATED).body(result);
         } catch (Exception e) {
             // TODO: handle exception
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
 
         }
     }

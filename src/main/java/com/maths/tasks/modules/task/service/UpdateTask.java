@@ -17,10 +17,10 @@ public class UpdateTask {
         TaskModel task = taskRepository.findById(id)
         .orElseThrow(() -> new IllegalArgumentException("Tarefa não encontrada"));
 
-         if(!updatTaskDTO.title().isBlank())((TaskModel) task).setTitle(updatTaskDTO.title());
-         if(!updatTaskDTO.description().isBlank())((TaskModel) task).setDescription(updatTaskDTO.description());
-         if(!updatTaskDTO.status().isBlank())((TaskModel) task).setStatus(updatTaskDTO.status());
-
+        if(updatTaskDTO.title() != null & !updatTaskDTO.title().isEmpty())((TaskModel) task).setTitle(updatTaskDTO.title());
+        if(updatTaskDTO.description() != null & !updatTaskDTO.description().isEmpty())((TaskModel) task).setDescription(updatTaskDTO.description());
+        if(updatTaskDTO.status() != null & !updatTaskDTO.description().isEmpty())((TaskModel) task).setStatus(updatTaskDTO.status());
+       
         var newTask = taskRepository.save(task);
 
 
